@@ -1,0 +1,128 @@
+---
+title: "Keeping HIV In The Past"
+subtitle: "An Examination of HIV Tests on Newborns in Developing Nations"
+author: "Sean Peace"
+format:
+  html:
+    theme: darkly
+    
+execute:
+  echo: false
+  warning: false
+  message: false
+editor: visual
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# libraries
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+# data
+unicef_indicator_2 <- read_csv("unicef_indicator_2.csv")
+unicef_metadata <- read_csv("unicef_metadata.csv")
+# transformations
+data_join <- full_join(unicef_indicator_2, unicef_metadata)
+data_join <- full_join(unicef_indicator_2, unicef_metadata, by = c("country"))
+
+```
+Welcome to Keeping HIV In the Past For The Future: An Examination of HIV Tests on Newborns in Developing Nations. This dashboard is dedicated to shedding light on a critical aspect of maternal and child healthcare, focusing on HIV testing practices among infants born to HIV-positive mothers, and utilizing data from the socio-economic datasets of life-expectancy, GNI and GDP.The health of newborns born to HIV-positive mothers is very closely linked to timely HIV testing and the subsequent interventions should they be necessary. While many take this testing for granted in many parts of the world, access to such testing remains a crucial determinant of health outcomes for both mother and child in developing nations.Through this dashboard, we embark on a journey to explore the landscape of HIV testing among these vulnerable infants across different nations. Leveraging life-expectancy, GNI and GDP we aim to unravel the complex interplay between factors such as these with healthcare infrastructure and cultural contexts in shaping HIV testing practices and outcomes.
+
+```{r}
+world_map <- map_data("world")
+merge_data <- merge(unicef_metadata, unicef_indicator_2, by = "country", all = TRUE)
+
+data_join_1960 <- unicef_metadata %>%
+  filter(year == 1960)
+names(data_join_1960)[names(data_join_1960) =="Life expectancy at birth, total (years)"] <- "Life_Exp"
+
+map_data_join <- full_join(data_join_1960, world_map, by = c("country" = "region"))
+
+world_map <- map_data("world")
+view(world_map)
+
+ggplot(map_data_join) +
+  aes(x = long, y = lat, group = group, fill = Life_Exp) +
+  geom_polygon() +
+  scale_fill_gradient(low = "orange", high = "green4", na.value = "grey") +
+  labs(title = "Worldwide Life Expectancy 1960", x = "Longitude", y = "Latitude") +
+  theme_classic()
+
+```
+
+```{r}
+#| fig-cap: "Life expectancy has changed dramatically as medical innovations, such as universal HIV testing, have expanded around the world. Throughout the past few decades, life expectancy has significantly increased for people all over the world due to greater access to healthcare services, preventive measures, and therapies. For example, HIV testing has extended millions of people's lives by enabling early diagnosis and prompt interventions, in addition to helping to contain the HIV/AIDS epidemic. Furthermore, improvements in immunisation policies, public health campaigns, and medical technology have all contributed to a decrease in the death rates from various illnesses and ailments, allowing people all over the world to enjoy longer, healthier lives."
+
+merge_data <- merge(unicef_metadata, unicef_indicator_2, by = "country", all = TRUE)
+
+data_join_2021 <- unicef_metadata %>%
+  filter(year == 2021)
+names(data_join_2021)[names(data_join_2021) =="Life expectancy at birth, total (years)"] <- "Life_Exp"
+
+world_map <- map_data("world")
+view(world_map)
+
+map_data_join <- full_join(data_join_2021, world_map, by = c("country" = "region"))
+
+ggplot(map_data_join) +
+  aes(x = long, y = lat, group = group, fill = Life_Exp) +
+  geom_polygon() +
+  scale_fill_gradient(low = "orange", high = "green4", na.value = "grey") +
+  labs(title = "Worldwide Life Expectancy 2021") +
+  theme_classic()
+
+```
+```{r}
+#| fig-cap: "As the world's wealth, measured by GDP and GNI, has steadily increased, so too has global life expectancy experienced a notable ascent. Economic prosperity has facilitated greater access to essential healthcare services, improved sanitation, and better nutrition, all of which are fundamental determinants of health and longevity. Rising incomes have enabled individuals and governments to invest more in healthcare infrastructure, disease prevention, and medical research, leading to groundbreaking advancements in treatment modalities and public health interventions. Consequently, people across the globe are now living longer and healthier lives, benefitting from the dividends of economic growth in terms of improved well-being and longevity."
+
+names(data_join)[names(data_join) =="country"] <- "region"
+names(data_join)[names(data_join) =="Life expectancy at birth, total (years)"] <- "Life_Exp"
+
+timeseries_plot_1 <- data_join %>%
+  ggplot() +
+  aes(year, Life_Exp, group = region, color = region) +
+  geom_line() +
+  labs(title = "Life Expectancy Through The Years") +
+  theme_classic()
+
+ggplotly(timeseries_plot_1)
+
+```
+
+```{r}
+
+#Scatterplot_1
+
+scatterplot_1 <- data_join %>%
+  ggplot() +
+  aes(obs_value, time_period, color = region, size = obs_value) +
+  geom_point(alpha=0.15) +
+  labs(x = "Tests Permorfed", y = "Years", title = "Vacinations Through The Years") +
+  theme_classic()
+
+
+ggplotly(scatterplot_1)
+```
+
+The complex relationships between life expectancy, healthcare, and gross national income (GNI) highlight the relationship between socioeconomic development and public health consequences. Greater investment in healthcare infrastructure, technology, and education is generally correlated with higher GNI, which promotes enhanced access to medical services and treatment improvements. As a result, people in nations with greater GNI levels typically live longer because of improved access to healthcare, reduced rates of illness, and generally higher living standards. This relationship emphasises how important it is for economic prosperity to have a significant impact on health outcomes and how important it is for everyone to have fair access to healthcare in order to maintain long-term increases in life expectancy across a variety of international contexts.
+
+```{r}
+
+names(data_join)[names(data_join) =="GNI (current US$)"] <- "GNI"
+
+barchart_1 <- data_join %>%
+  ggplot() +
+  aes(year, GNI, group = region, color = region) +
+  geom_col()+
+  labs(title = "GNI Per Region") +
+  theme_classic()
+
+ggplotly(barchart_1)
+
+```
+
+This dashboard aims to provide you with the ability to understand an issue that spans the globe. The issue is inadequate healthcare leads to severe effects for the most vulnerable in our society. Children who have been born into a world where should they not receive the simplest of procedures such as a HIV test will potentially endure a lifetime of illness that could have easily been controlled and treated mere days after birth. While HIV testing is only the tip of the iceberg in terms of the healthcare a child needs to be healthy and safe it is a good standard to examine how robust and reliable a country’s healthcare system is. Factors such as those examined above are intrinsically tied to the health of a nation's citizens. It is a cycle of increased GDP, GNI and life expectancy that leads to investment in healthcare which leads to healthier citizens and as such greater GDP, GNI and life expectancy. While it is easy to see the data above as only mere numbers I urge you to try to see past the digits and decimals to the children and families affected by the horrific disease that is HIV.
+
